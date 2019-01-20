@@ -1,24 +1,17 @@
 version: 2.1
 
-who_am_i: &who_am_i
-  run:
-    name: Tell the CI who I am
-    command: |
-      git config --global user.email $GIT_EMAIL
-      git config --global user.name $GIT_USERNAME
-
 restore_cache: &restore_cache
   restore_cache:
     key: dependency-cache-{{ checksum "package-lock.json" }}
 
 manage_dependencies: &manage_dependencies
   run:
-    name: NPM Rebuild
+    name: Install/Manage dependencies
     command: npm ci
 
 build: &build
   run:
-    name: NPM Rebuild
+    name: Build/Compile project
     command: npm run build
 
 unit_tests: &unit_tests
@@ -29,7 +22,6 @@ unit_tests: &unit_tests
 tests: &tests
   steps:
     - checkout
-    # - <<: *who_am_i
     - <<: *restore_cache
     - <<: *manage_dependencies
     - <<: *build
@@ -60,10 +52,10 @@ jobs:
           name: Run linting.
           command: npm run lint
       - run:
-          name: Run NSP Security Check.
+          name: Run Security Check.
           command: npm audit --quiet
       - run:
-          name: Validate Commit Messages
+          name: Validate commit messages
           command: npx commitlint --from=${CIRCLE_BRANCH} --to=${CIRCLE_SHA1}
   #endregion
 
@@ -73,7 +65,6 @@ jobs:
       - image: circleci/node:latest
     steps:
       - checkout
-      # - <<: *who_am_i
       - <<: *restore_cache
       - <<: *manage_dependencies
       - <<: *build
@@ -101,14 +92,13 @@ jobs:
       - image: circleci/node:latest
     steps:
       - checkout
-      # - <<: *who_am_i
       - <<: *restore_cache
       - <<: *manage_dependencies
       - run:
-          name: Generate Typedoc documentations
+          name: Generate documentations
           command: npm run predocs
       - run:
-          name: Push the documentations to Github gh-pages
+          name: Push the documentations to Github pages
           command: npx gh-pages --dist docs --tag $CIRCLE_TAG
   draft:
     docker:
@@ -117,9 +107,6 @@ jobs:
       - checkout
       - <<: *restore_cache
       - <<: *manage_dependencies
-      # - run:
-      #     name: Validate Commit Messages
-      #     command: npx commitlint --from=$(git describe --tags --abbrev=0) --to=$(git rev-parse HEAD)
       - run: npx semantic-release
   publish:
     docker:
@@ -128,13 +115,9 @@ jobs:
       PUBLISH: true
     steps:
       - checkout
-      # - run:
-      #     name: set npm TOKEN
-      #     command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
       - <<: *restore_cache
       - <<: *manage_dependencies
       - run: npx semantic-release
-      # - run: npm publish --verbose
   #endregion
 
 workflows:
@@ -194,7 +177,7 @@ workflows:
               only: /^v\d+[.]\d+[.]\d+$/
             branches:
               ignore: /.*/
-      - check github Releases!:
+      - publish package?:
           type: approval
           requires:
             - draft
@@ -203,7 +186,7 @@ workflows:
               only: /^v\d+[.]\d+[.]\d+$/
       - publish:
           requires:
-            - check github Releases!
+            - publish package?
           filters:
             tags:
               only: /^v\d+[.]\d+[.]\d+$/
