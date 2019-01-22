@@ -1,13 +1,5 @@
 version: 2.1
 
-# for publishing to github pages
-who_am_i: &who_am_i
-  run:
-    name: Tell the CI who I am
-    command: |
-      git config --global user.email $GIT_EMAIL
-      git config --global user.name $GIT_USERNAME
-
 restore_cache: &restore_cache
   restore_cache:
     key: dependency-cache-{{ checksum "package-lock.json" }}
@@ -100,7 +92,6 @@ jobs:
       - image: circleci/node:latest
     steps:
       - checkout
-      - <<: *who_am_i
       - <<: *restore_cache
       - <<: *manage_dependencies
       - run:
@@ -144,6 +135,8 @@ workflows:
       #region PREPARATION
       - dependency_cache:
           filters:
+            branches:
+              ignore: gh-pages
             tags:
               only: /.*/
       - analysis:
@@ -191,7 +184,7 @@ workflows:
             - draft
           filters:
             tags:
-              only: /^v\d+[.]\d+[.]\d+(-\d+|-\w+|)$/
+              only: /^v\d+[.]\d+[.]\d+$/ # don't support pre-release
             branches:
               ignore: /.*/
       - publish package?:
