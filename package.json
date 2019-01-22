@@ -18,7 +18,6 @@
   },
   "scripts": {
     "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
-    "prebuild": "rimraf dist",
     "build": "tsc --module commonjs && rollup -c rollup.config.ts",
     "start": "rollup -c rollup.config.ts -w",
     "test": "jest --coverage --watch",
@@ -26,7 +25,10 @@
     "test:prod": "jest --coverage --no-cache",
     "predocs": "typedoc --out docs --target es6 --theme minimal --mode file src",
     "commit": "git-cz",
-    "docs": "opn docs/index.html"
+    "docs": "opn docs/index.html",
+    "release": "standard-version --skip.commit --skip.tag --release-as",
+    "release:ok": "standard-version --sign --commit-all --skip.bump --skip.changelog",
+    "prepublishOnly": "npm run build"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
@@ -85,6 +87,7 @@
     "commitizen": "^3.0.0",
     "cz-conventional-changelog": "^2.1.0",
     "gh-pages": "^2.0.1",
+    "gh-release": "^3.4.0",
     "husky": "^1.0.1",
     "jest": "^23.6.0",
     "jest-config": "^23.6.0",
@@ -92,14 +95,13 @@
     "lodash.camelcase": "^4.3.0",
     "opn-cli": "^4.0.0",
     "prettier": "^1.14.3",
-    "rimraf": "^2.6.2",
     "rollup": "^0.67.0",
     "rollup-plugin-commonjs": "^9.1.8",
     "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-node-resolve": "^3.4.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-typescript2": "^0.18.0",
-    "semantic-release": "^15.13.3",
+    "standard-version": "^4.4.0",
     "ts-jest": "^23.10.2",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0",
