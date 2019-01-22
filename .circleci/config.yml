@@ -100,6 +100,7 @@ jobs:
       - image: circleci/node:latest
     steps:
       - checkout
+      - <<: *who_am_i
       - <<: *restore_cache
       - <<: *manage_dependencies
       - run:
@@ -107,19 +108,19 @@ jobs:
           command: npm run predocs
       - run:
           name: Push the documentations to Github pages
-          command: npx gh-pages --dist docs --tag $CIRCLE_TAG
+          command: npx gh-pages --dist docs
   draft:
     docker:
       - image: circleci/node:latest
     steps:
       - checkout
-      - <<: *who_am_i
       - <<: *restore_cache
       - <<: *manage_dependencies
       - run:
           name: Validate Commit Messages
           command: npx commitlint --from=$(git describe --tags --abbrev=0) --to=$(git rev-parse HEAD)
       - run: npm pack
+      - run: npm run predocs && tar cvzf docs-$CIRCLE_TAG.tgz docs
       - run:
           name: Draft Github release
           command: GH_RELEASE_GITHUB_API_TOKEN=$GH_TOKEN npx gh-release --draft --assets *.tgz --yes
@@ -182,7 +183,7 @@ workflows:
             - analysis
           filters:
             tags:
-              only: /^v\d+[.]\d+[.]\d+$/
+              only: /^v\d+[.]\d+[.]\d+(-\d+|-\w+|)$/
             branches:
               ignore: /.*/
       - deploy-docs:
@@ -190,7 +191,7 @@ workflows:
             - draft
           filters:
             tags:
-              only: /^v\d+[.]\d+[.]\d+$/
+              only: /^v\d+[.]\d+[.]\d+(-\d+|-\w+|)$/
             branches:
               ignore: /.*/
       - publish package?:
@@ -199,11 +200,11 @@ workflows:
             - draft
           filters:
             tags:
-              only: /^v\d+[.]\d+[.]\d+$/
+              only: /^v\d+[.]\d+[.]\d+(-\d+|-\w+|)$/
       - publish:
           requires:
             - publish package?
           filters:
             tags:
-              only: /^v\d+[.]\d+[.]\d+$/
+              only: /^v\d+[.]\d+[.]\d+(-\d+|-\w+|)$/
       #endregion

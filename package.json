@@ -26,8 +26,8 @@
     "predocs": "typedoc --out docs --target es6 --theme minimal --mode file src",
     "commit": "git-cz",
     "docs": "opn docs/index.html",
-    "release": "standard-version --skip.commit --skip.tag --release-as",
-    "release:ok": "standard-version --sign --commit-all --skip.bump --skip.changelog",
+    "release": "standard-version --skip.commit --skip.tag",
+    "release:ok": "standard-version --sign --commit-all --skip.bump --skip.changelog -m 'chore(release): %s' -m '[skip ci]'",
     "prepublishOnly": "npm run build"
   },
   "lint-staged": {
