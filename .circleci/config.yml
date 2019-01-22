@@ -110,11 +110,11 @@ jobs:
       - run:
           name: Validate Commit Messages
           command: npx commitlint --from=$(git describe --tags --abbrev=0) --to=$(git rev-parse HEAD)
-      - run: npm pack
+      - run: npm run build && npm pack
       - run: npm run predocs && tar cvzf docs-$CIRCLE_TAG.tgz docs
       - run:
           name: Draft Github release
-          command: GH_RELEASE_GITHUB_API_TOKEN=$GH_TOKEN npx gh-release --draft --assets *.tgz --yes
+          command: GH_RELEASE_GITHUB_API_TOKEN=$GH_TOKEN npx gh-release --draft --assets $(ls -m *.tgz | tr -d ' ') --yes
   publish:
     docker:
       - image: circleci/node:latest
@@ -125,7 +125,7 @@ jobs:
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
       - <<: *restore_cache
       - <<: *manage_dependencies
-      - run: npm publish --verbose
+      - run: npm publish
   #endregion
 
 workflows:
@@ -181,7 +181,7 @@ workflows:
               ignore: /.*/
       - deploy-docs:
           requires:
-            - draft
+            - publish package?
           filters:
             tags:
               only: /^v\d+[.]\d+[.]\d+$/ # don't support pre-release
